@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bütçe & Takip Sistemi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f4f6f9; /* Arka planı biraz daha yumuşattık */
+      padding: 0;
+      margin: 0;
+      color: #333;
+    }
+    
+    /* --- ALT MENÜ (NAVBAR) --- */
+    .navbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      box-shadow: 0 -2px 15px rgba(0,0,0,0.05);
+      z-index: 1000;
+      border-top: 1px solid #f1f1f1;
+    }
+    .nav-item {
+      text-align: center;
+      color: #bdc3c7;
+      cursor: pointer;
+      font-size: 13px;
+      flex: 1;
+      transition: color 0.3s;
+    }
+    .nav-item i { display: block; font-size: 22px; margin-bottom: 4px; }
+    .nav-item.active { color: #3498db; font-weight: 600; }
+
+    /* --- SAYFA YAPISI --- */
+    .page {
+      display: none;
+      padding: 20px 20px 90px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+      animation: fadeIn 0.3s ease;
+    }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .container {
+      background: transparent; /* Mobilde kart hissi yerine bütünleşsin */
+    }
+    h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 1.6rem; display:flex; align-items:center; justify-content:center; gap:10px; }
+
+    /* --- DASHBOARD --- */
+    .dashboard { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
+    .dashboard-top { display: flex; gap: 12px; }
+    .card {
+      flex: 1; padding: 15px; border-radius: 15px; text-align: center; color: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      position: relative; overflow: hidden;
+    }
+    .card::after { content:''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(rgba(255,255,255,0.1), transparent); pointer-events: none; }
+    
+    .card-budget { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .card-spent { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .card-remain { background: linear-gradient(135deg, #27ae60, #219150); padding: 20px; }
+    .card-remain.danger { background: linear-gradient(135deg, #c0392b, #a93226); } /* Sadece bütçe girilmişse kırmızı olur */
+
+    .card h3 { margin: 0; font-size: 14px; opacity: 0.9; font-weight: normal; }
+    .card span { font-size: 22px; font-weight: bold; display: block; margin-top: 5px; }
+
+    /* INPUTLAR */
+    input { padding: 14px; border: 1px solid #eee; border-radius: 12px; outline: none; font-size: 16px; width: 100%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: border 0.3s; }
+    input:focus { border-color: #3498db; }
+    
+    button { padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; color: white; transition: transform 0.1s, opacity 0.3s; }
+    button:active { transform: scale(0.98); }
+    .btn-save-budget { background: #34495e; width: 100%; margin-top: 8px; }
+    .btn-add { background: #27ae60; flex: 1; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); }
+    .btn-clear-all { background: #c0392b; width: 100%; margin-top: 20px; padding: 16px; box-shadow: 0 4px 10px rgba(192, 57, 43, 0.3); }
+    
+    .add-item-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .price-row { display: flex; gap: 10px; }
+
+    /* --- TABLO TASARIMI (DÜZELTİLDİ: KART GÖRÜNÜMÜ) --- */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 12px; /* Kartlar arası boşluk */
+    }
+    
+    /* TD Stilleri: Artık çizgi yok, gölgeli kutu var */
+    td {
+      background: #fff;
+      border: none; /* Çizgileri kaldırdık */
+      padding: 15px;
+      vertical-align: middle;
+    }
+
+    /* Sol baş ve sağ son köşe yuvarlatma */
+    td:first-child {
+      border-top-left-radius: 15px;
+      border-bottom-left-radius: 15px;
+      padding-left: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03); /* Hafif gölge */
+    }
+    td:last-child {
+      border-top-right-radius: 15px;
+      border-bottom-right-radius: 15px;
+      padding-right: 15px;
+      box-shadow: 5px 4px 15px rgba(0,0,0,0.03); /* Gölgenin devamı */
+    }
+    
+    /* Orta hücrelerin gölgesi (üst ve alt) */
+    td:not(:first-child):not(:last-child) {
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+
+    .item-name { font-weight: 600; color: #34495e; font-size: 15px; }
+    .item-price { color: #7f8c8d; font-size: 14px; }
+
+    /* Butonlar */
+    .action-btn { padding: 0; border-radius: 8px; color: white; margin-left: 5px; width: 36px; height: 36px; display: inline-flex; justify-content: center; align-items: center; font-size: 14px; border:none; cursor: pointer; }
+    .btn-up, .btn-down { background: #ecf0f1; color: #7f8c8d; width: 28px; height: 28px; font-size: 10px; margin: 2px 0; }
+    .btn-check { background: #f1c40f; }
+    .btn-check.completed { background: #27ae60; }
+    .btn-delete { background: #e74c3c; }
+
+    tr.bought-item td { background-color: #fcfcfc; opacity: 0.6; }
+    tr.bought-item .item-name { text-decoration: line-through; color: #bdc3c7; }
+
+    /* --- GEÇMİŞ SAYFASI --- */
+    .month-header {
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 25px;
+      margin-bottom: 12px;
+      font-weight: bold;
+      color: #2c3e50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border-left: 5px solid #3498db;
+    }
+    .btn-delete-month {
+      background: #fee;
+      color: #c0392b;
+      border: 1px solid #fadbd8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .history-card {
+      background: #fff;
+      border-bottom: 1px solid #f5f5f5;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-card:last-child { border-bottom: none; border-radius: 0 0 12px 12px; }
+    .history-date { font-size: 12px; color: #95a5a6; display: flex; align-items: center; gap: 5px; }
+    .history-amount { font-size: 16px; font-weight: bold; color: #27ae60; }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="nav-item active" onclick="switchPage('home')">
+    <i class="fas fa-list-ul"></i> Liste
+  </div>
+  <div class="nav-item" onclick="switchPage('history')">
+    <i class="fas fa-chart-line"></i> Geçmiş
+  </div>
+</div>
+
+<div id="homePage" class="page active">
+  <div class="container">
+    <h2><i class="fas fa-wallet" style="color:#3498db;"></i> Bütçe & Alışveriş</h2>
+
+    <div class="dashboard">
+      <div class="dashboard-top">
+        <div class="card card-budget">
+          <h3>Bütçem</h3>
+          <span id="displayBudget">0.00 ₺</span>
+        </div>
+        <div class="card card-spent">
+          <h3>Liste Tutarı</h3>
+          <span id="displayTotalList">0.00 ₺</span>
+        </div>
+      </div>
+      <div class="card card-remain" id="cardRemain">
+        <h3>Kalan</h3>
+        <span id="displayRemaining">0.00 ₺</span>
+      </div>
+    </div>
+
+    <div style="background:#fff; padding:15px; border-radius:15px; margin-bottom:20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+        <label style="font-size:12px; font-weight:600; color:#7f8c8d; margin-bottom:5px; display:block;">Bütçe Belirle:</label>
+        <div style="display:flex; gap:10px;">
+           <input type="number" id="budgetInput" placeholder="Örn: 2000" style="flex:1;">
+           <button class="btn-save-budget" onclick="saveBudget()" style="width:auto; padding:0 20px; margin:0; background:#3498db;">OK</button>
+        </div>
+    </div>
+
+    <div class="add-item-section">
+      <input type="text" id="itemName" placeholder="Ürün adı (Örn: Peynir)">
+      <div class="price-row">
+        <input type="number" id="itemPrice" placeholder="Fiyat" style="flex: 2;">
+        <button class="btn-add" onclick="addItem()"><i class="fas fa-plus"></i> Ekle</button>
+      </div>
+    </div>
+
+    <table>
+      <tbody id="shoppingListBody"></tbody>
+    </table>
+
+    <button class="btn-clear-all" onclick="finishShopping()"><i class="fas fa-check-double"></i> Alışverişi Bitir & Kaydet</button>
+    <div style="height: 20px;"></div>
+  </div>
+</div>
+
+<div id="historyPage" class="page">
+  <div class="container">
+    <h2><i class="fas fa-history" style="color:#e67e22;"></i> Harcama Geçmişi</h2>
+    <div id="historyList">
+      <p style="text-align:center; color:#bdc3c7; margin-top:40px;">Henüz geçmiş kayıt yok.</p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import { getDatabase, ref, push, set, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKUs5FM50ejN9tVdvUNzocRGU5Q5lD2eo",
+    authDomain: "urunrakip.firebaseapp.com",
+    databaseURL: "https://urunrakip-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "urunrakip",
+    storageBucket: "urunrakip.appspot.com",
+    messagingSenderId: "893193039416",
+    appId: "1:893193039416:web:8624c79038f5dc9a2ac0cd"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase();
+
+  let globalBudget = 0;
+  let globalListTotal = 0;
+  let localList = [];
+
+  // --- SAYFA GEÇİŞLERİ ---
+  window.switchPage = function(pageName) {
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    if (pageName === 'home') {
+        document.getElementById('homePage').classList.add('active');
+        document.querySelectorAll('.nav-item')[0].classList.add('active');
+    } else {
+        document.getElementById('historyPage').classList.add('active');
+        document.querySelectorAll('.nav-item')[1].classList.add('active');
+    }
+  };
+
+  // --- BÜTÇE ---
+  window.saveBudget = function() {
+    const budgetVal = parseFloat(document.getElementById("budgetInput").value);
+    if (isNaN(budgetVal) || budgetVal < 0) return;
+    set(ref(db, "butce"), { miktar: budgetVal });
+    document.getElementById("budgetInput").value = "";
+    Swal.fire({ icon: 'success', title: 'Bütçe Güncellendi', toast: true, position: 'top-end', timer: 1500, showConfirmButton:false });
+  };
+
+  onValue(ref(db, "butce"), (snapshot) => {
+    const data = snapshot.val();
+    globalBudget = data ? parseFloat(data.miktar) : 0;
+    document.getElementById("displayBudget").innerText = globalBudget.toFixed(2) + " ₺";
+    calculateRemaining();
+  });
+
+  // --- LİSTE VE SIRALAMA ---
+  window.addItem = function() {
+    const name = document.getElementById("itemName").value.trim();
+    const priceVal = document.getElementById("itemPrice").value.replace(',','.');
+    const price = priceVal === "" ? 0 : parseFloat(priceVal);
+
+    if (!name) { Swal.fire("Eksik Bilgi", "Ürün adı yazmalısın.", "warning"); return; }
+
+    push(ref(db, "alisveris_listesi"), {
+      name: name,
+      price: price,
+      isBought: false,
+      order: Date.now()
+    });
+    
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemPrice").value = "";
+  };
+
+  onValue(ref(db, "alisveris_listesi"), (snapshot) => {
+    localList = [];
+    globalListTotal = 0;
+
+    snapshot.forEach((child) => {
+      const item = child.val();
+      localList.push({ key: child.key, ...item });
+      globalListTotal += parseFloat(item.price);
+    });
+
+    localList.sort((a, b) => a.order - b.order);
+    renderTable();
+    
+    document.getElementById("displayTotalList").innerText = globalListTotal.toFixed(2) + " ₺";
+    calculateRemaining();
+  });
+
+  function renderTable() {
+    const listBody = document.getElementById("shoppingListBody");
+    listBody.innerHTML = "";
+    if (localList.length === 0) {
+       listBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#bdc3c7; padding:30px; border:none; box-shadow:none;">Listeniz şu an boş.</td></tr>';
+       return;
+    }
+    localList.forEach((item, index) => {
+      const tr = document.createElement("tr");
+      if(item.isBought) tr.classList.add("bought-item");
+      
+      const upBtn = index > 0 ? `<button class="action-btn btn-up" onclick="moveItem(${index}, -1)"><i class="fas fa-chevron-up"></i></button>` : `<div style="height:28px;"></div>`;
+      const downBtn = index < localList.length - 1 ? `<button class="action-btn btn-down" onclick="moveItem(${index}, 1)"><i class="fas fa-chevron-down"></i></button>` : `<div style="height:28px;"></div>`;
+
+      tr.innerHTML = `
+        <td style="width:40px; text-align:center; padding-right:5px;">
+           <div style="display:flex; flex-direction:column; align-items:center;">${upBtn}${downBtn}</div>
+        </td>
+        <td>
+           <div class="item-name">${item.name}</div>
+           <div class="item-price">${item.price > 0 ? item.price.toFixed(2) + ' ₺' : ''}</div>
+        </td>
+        <td style="text-align: right; white-space:nowrap;">
+          <button class="action-btn btn-check ${item.isBought ? 'completed' : ''}" onclick="toggleBought('${item.key}', ${item.isBought})"><i class="fas fa-check"></i></button>
+          <button class="action-btn btn-delete" onclick="deleteItem('${item.key}')"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      listBody.appendChild(tr);
+    });
+  }
+
+  window.moveItem = function(currentIndex, direction) {
+    const targetIndex = currentIndex + direction;
+    const updates = {};
+    updates[`alisveris_listesi/${localList[currentIndex].key}/order`] = localList[targetIndex].order;
+    updates[`alisveris_listesi/${localList[targetIndex].key}/order`] = localList[currentIndex].order;
+    update(ref(db), updates);
+  };
+
+  // --- HESAPLAMA (GÜNCELLENDİ: 0 BÜTÇE LOGİĞİ) ---
+  function calculateRemaining() {
+    const remaining = globalBudget - globalListTotal;
+    const el = document.getElementById("displayRemaining");
+    const card = document.getElementById("cardRemain");
+    
+    el.innerText = remaining.toFixed(2) + " ₺";
+    
+    // Eğer Bütçe 0 ise (henüz girilmemişse) uyarı verme, normal yeşil kalsın
+    if (globalBudget === 0) {
+        card.classList.remove("danger");
+        el.innerText = remaining.toFixed(2) + " ₺"; // Sade yazı
+    }
+    // Bütçe var ve para yetmiyorsa kırmızı yap
+    else if (remaining < 0) {
+        card.classList.add("danger"); 
+        el.innerHTML = remaining.toFixed(2) + " ₺<br><small style='font-size:12px; opacity:0.8;'>Limit Aşıldı!</small>"; 
+    } 
+    // Para yetiyorsa normal
+    else { 
+        card.classList.remove("danger"); 
+    }
+  }
+
+  window.toggleBought = function(k, s) { update(ref(db, "alisveris_listesi/" + k), { isBought: !s }); };
+  window.deleteItem = function(k) { remove(ref(db, "alisveris_listesi/" + k)); };
+
+  // --- ALIŞVERİŞ BİTİRME ---
+  window.finishShopping = function() {
+    if (globalListTotal === 0 && localList.length === 0) {
+        Swal.fire("Liste Boş", "İşlem yapılacak veri yok.", "info");
+        return;
+    }
+
+    Swal.fire({
+      title: 'Alışveriş Bitti mi?',
+      html: `Toplam Harcama: <b>${globalListTotal.toFixed(2)} ₺</b><br>Geçmişe kaydedip listeyi temizleyeyim mi?`,
+      icon: 'question',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Evet, Kaydet',
+      denyButtonText: 'Sadece Sil',
+      cancelButtonText: 'Vazgeç'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0]; 
+        const monthStr = `${today.getFullYear()}-${today.getMonth() + 1}`;
+
+        push(ref(db, "gecmis_harcamalar"), {
+            amount: globalListTotal,
+            date: dateStr,
+            fullDate: today.toLocaleString('tr-TR'),
+            monthKey: monthStr
+        }).then(() => {
+            remove(ref(db, "alisveris_listesi"));
+            set(ref(db, "butce"), { miktar: 0 }); // Bütçeyi sıfırla
+            Swal.fire('Kaydedildi!', '', 'success');
+        });
+      } else if (result.isDenied) {
+        remove(ref(db, "alisveris_listesi"));
+        set(ref(db, "butce"), { miktar: 0 });
+        Swal.fire('Temizlendi', '', 'info');
+      }
+    });
+  };
+
+  // --- GEÇMİŞ LİSTELEME VE SİLME ---
+  
+  // Aylık Veri Silme Fonksiyonu
+  window.deleteMonthData = function(monthKey) {
+      Swal.fire({
+          title: 'Bu Ay Silinsin mi?',
+          text: "Bu aya ait tüm geçmiş kayıtlar kalıcı olarak silinecek!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#e74c3c',
+          confirmButtonText: 'Evet, Sil',
+          cancelButtonText: 'Vazgeç'
+      }).then((result) => {
+          if (result.isConfirmed) {
+              // Veritabanını tara ve bu monthKey'e sahip olanları sil
+              get(ref(db, "gecmis_harcamalar")).then((snapshot) => {
+                  if (snapshot.exists()) {
+                      const updates = {};
+                      snapshot.forEach((child) => {
+                          if (child.val().monthKey === monthKey) {
+                              updates[child.key] = null; // Silme işlemi
+                          }
+                      });
+                      update(ref(db, "gecmis_harcamalar"), updates).then(() => {
+                          Swal.fire("Silindi", "Ay verileri temizlendi.", "success");
+                      });
+                  }
+              });
+          }
+      });
+  };
+
+  onValue(ref(db, "gecmis_harcamalar"), (snapshot) => {
+    const historyDiv = document.getElementById("historyList");
+    historyDiv.innerHTML = "";
+    
+    if (!snapshot.exists()) {
+        historyDiv.innerHTML = '<p style="text-align:center; color:#bdc3c7; margin-top:40px;">Henüz geçmiş kayıt yok.</p>';
+        return;
+    }
+
+    let historyData = [];
+    snapshot.forEach(child => {
+        historyData.push(child.val());
+    });
+    historyData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    let grouped = {};
+    historyData.forEach(item => {
+        if (!grouped[item.monthKey]) {
+            grouped[item.monthKey] = { total: 0, items: [] };
+        }
+        grouped[item.monthKey].items.push(item);
+        grouped[item.monthKey].total += parseFloat(item.amount);
+    });
+
+    Object.keys(grouped).sort().reverse().forEach(monthKey => {
+        const group = grouped[monthKey];
+        const [year, month] = monthKey.split('-');
+        const dateObj = new Date(year, month - 1);
+        const monthName = dateObj.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+
+        // Başlık (Sil Butonlu)
+        const header = document.createElement("div");
+        header.className = "month-header";
+        header.innerHTML = `
+            <div style="display:flex; flex-direction:column;">
+                <span>${monthName}</span>
+                <span style="font-size:12px; font-weight:normal; color:#95a5a6;">Toplam: ${group.total.toFixed(2)} ₺</span>
+            </div>
+            <button class="btn-delete-month" onclick="deleteMonthData('${monthKey}')">
+               <i class="fas fa-trash"></i> Bu Ayı Sil
+            </button>
+        `;
+        historyDiv.appendChild(header);
+
+        // İçerik kutusu
+        const containerDiv = document.createElement("div");
+        containerDiv.style.borderRadius = "12px";
+        containerDiv.style.overflow = "hidden";
+        containerDiv.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+        
+        group.items.forEach(hItem => {
+            const row = document.createElement("div");
+            row.className = "history-card";
+            row.innerHTML = `
+                <div class="history-date">
+                    <i class="far fa-calendar-check" style="color:#3498db;"></i> ${hItem.fullDate}
+                </div>
+                <div class="history-amount">
+                    -${parseFloat(hItem.amount).toFixed(2)} ₺
+                </div>
+            `;
+            containerDiv.appendChild(row);
+        });
+        historyDiv.appendChild(containerDiv);
+    });
+  });
+
+</script>
+</body>
+</html>
