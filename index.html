@@ -22,7 +22,6 @@
     .page.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* BAŞLIK ALANI */
     .header-area { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 25px; }
     .header-area h2 { margin: 0; color: #2c3e50; font-size: 1.6rem; display:flex; align-items:center; gap:10px; }
     .btn-delete-history { position: absolute; right: 0; background: #fee; color: #c0392b; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
@@ -45,15 +44,23 @@
     .add-item-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
     .input-row { display: flex; gap: 8px; }
 
-    /* TABLO */
+    /* TABLO VE SIRALAMA BUTONLARI */
     table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
     td { background: #fff; padding: 15px; vertical-align: middle; }
-    td:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; padding-left: 15px; }
+    td:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; padding-left: 10px; }
     td:last-child { border-top-right-radius: 15px; border-bottom-right-radius: 15px; padding-right: 15px; }
+    
     .item-qty-badge { background:#eef2f3; color:#2c3e50; font-size:11px; padding:2px 6px; border-radius:6px; margin-left:5px; font-weight:bold; }
+    
+    /* İşlem Butonları */
     .action-btn { width: 34px; height: 34px; border-radius: 8px; color: white; margin-left: 4px; border:none; cursor: pointer; display:inline-flex; align-items:center; justify-content:center;}
     .btn-check { background: #f1c40f; } .btn-check.completed { background: #27ae60; } .btn-edit { background: #3498db; } .btn-delete { background: #e74c3c; }
     tr.bought-item .item-name { text-decoration: line-through; color: #bdc3c7; }
+
+    /* YENİ: Taşıma Butonları */
+    .move-controls { display: flex; flex-direction: column; gap: 2px; align-items: center; justify-content: center; margin-right: 8px; }
+    .btn-move { background: #ecf0f1; color: #95a5a6; width: 24px; height: 24px; border-radius: 4px; border:none; cursor:pointer; font-size: 10px; display:flex; align-items:center; justify-content:center; }
+    .btn-move:active { background: #bdc3c7; color: white; }
 
     /* MODAL */
     .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
@@ -226,7 +233,10 @@
   };
   
   function addItemDirect(name, price, qty) {
-      push(ref(db, "alisveris_listesi"), { name: name, price: price, quantity: qty, isBought: false, order: Date.now() });
+      push(ref(db, "alisveris_listesi"), { 
+          name: name, price: price, quantity: qty, isBought: false, 
+          order: Date.now() // Sıralama için zaman damgası
+      });
   }
 
   onValue(ref(db, "alisveris_listesi"), (snap) => {
@@ -234,9 +244,11 @@
     snap.forEach(c => { 
         const val = c.val();
         val.quantity = val.quantity || 1; 
+        val.order = val.order || 0;
         localList.push({key:c.key, ...val}); 
         globalListTotal += (parseFloat(val.price) * parseFloat(val.quantity)); 
     });
+    // Sıralama (order'a göre)
     localList.sort((a,b) => a.order - b.order);
     renderTable(); 
     document.getElementById("displayTotalList").innerText = globalListTotal.toFixed(2)+" ₺";
@@ -245,10 +257,19 @@
   function renderTable() {
     const el = document.getElementById("shoppingListBody"); el.innerHTML = "";
     if(localList.length===0) { el.innerHTML="<tr><td colspan='3' style='text-align:center; color:#ccc; padding:30px;'>Listeniz boş.</td></tr>"; return; }
-    localList.forEach(i => {
+    
+    localList.forEach((i, index) => {
        const tr = document.createElement("tr"); if(i.isBought) tr.classList.add("bought-item");
        const lineTotal = i.price * i.quantity;
+
+       // Yukarı / Aşağı Butonları (İlk ve son elemanda tek buton görünür)
+       const upBtn = index > 0 ? `<button class="btn-move" onclick="moveItem(${index}, -1)"><i class="fas fa-chevron-up"></i></button>` : `<div style="height:24px;"></div>`;
+       const downBtn = index < localList.length - 1 ? `<button class="btn-move" onclick="moveItem(${index}, 1)"><i class="fas fa-chevron-down"></i></button>` : `<div style="height:24px;"></div>`;
+
        tr.innerHTML = `
+       <td style="width:40px;">
+           <div class="move-controls">${upBtn}${downBtn}</div>
+       </td>
        <td>
            <div class="item-name">${i.name} ${i.quantity > 1 ? `<span class="item-qty-badge">x${i.quantity}</span>` : ''}</div>
            <div class="item-price" style="font-size:13px; color:#95a5a6;">${lineTotal.toFixed(2)} ₺</div>
@@ -262,6 +283,22 @@
     });
   }
   
+  // YUKARI AŞAĞI TAŞIMA FONKSİYONU
+  window.moveItem = function(index, direction) {
+      if (direction === -1 && index === 0) return; 
+      if (direction === 1 && index === localList.length - 1) return;
+
+      const currentItem = localList[index];
+      const targetItem = localList[index + direction];
+
+      // Firebase'de sadece order değerlerini takas et
+      const updates = {};
+      updates[`alisveris_listesi/${currentItem.key}/order`] = targetItem.order;
+      updates[`alisveris_listesi/${targetItem.key}/order`] = currentItem.order;
+
+      update(ref(db), updates);
+  };
+  
   window.tog = (k,s) => update(ref(db,"alisveris_listesi/"+k),{isBought:!s});
   window.del = (k) => remove(ref(db,"alisveris_listesi/"+k));
   window.edt = (k,n,p,q) => {
@@ -272,12 +309,10 @@
       }).then((r)=>{ if(r.isConfirmed) update(ref(db,"alisveris_listesi/"+k),{name:r.value[0], price:parseFloat(r.value[1])||0, quantity:parseFloat(r.value[2])||1}); });
   };
 
-  // --- KAYDET & GEÇMİŞ DÜZELTİLEN KISIM ---
+  // --- KAYDET & GEÇMİŞ ---
   window.finishShopping = function() {
     if (globalListTotal === 0 && localList.length === 0) { Swal.fire("Liste Boş", "", "info"); return; }
     
-    // SORUNUN ÇÖZÜMÜ: Listenin o anki kopyasını alıyoruz.
-    // Çünkü remove() çalışınca localList boşalıyor ve push işlemi boş liste gönderebiliyor.
     const itemsToSave = JSON.parse(JSON.stringify(localList));
 
     Swal.fire({
@@ -287,38 +322,23 @@
       if (result.isConfirmed) {
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
-        const monthStr = `${today.getFullYear()}-${today.getMonth() + 1}`; // Ayı doğru gruplamak için
-        
+        const monthStr = `${today.getFullYear()}-${today.getMonth() + 1}`;
         push(ref(db, "gecmis_harcamalar"), {
-            amount: globalListTotal, 
-            date: dateStr, 
-            monthKey: monthStr,
+            amount: globalListTotal, date: dateStr, monthKey: monthStr,
             fullDate: today.toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour:'2-digit', minute:'2-digit' }),
-            items: itemsToSave // Kopyayı kaydediyoruz
-        }).then(() => { 
-            remove(ref(db, "alisveris_listesi")); 
-            Swal.fire('Kaydedildi!', 'Geçmişe eklendi.', 'success'); 
-        });
-      } else if (result.isDenied) { 
-        remove(ref(db, "alisveris_listesi")); 
-        Swal.fire('Silindi', 'Geçmişe kaydedilmedi.', 'info');
-      }
+            items: itemsToSave
+        }).then(() => { remove(ref(db, "alisveris_listesi")); Swal.fire('Kaydedildi!', 'Geçmişe eklendi.', 'success'); });
+      } else if (result.isDenied) { remove(ref(db, "alisveris_listesi")); Swal.fire('Silindi', '', 'info'); }
     });
   };
 
-  // --- GEÇMİŞİ KOMPLE SİLME ---
   window.clearAllHistory = function() {
       Swal.fire({
-          title: 'Tüm Geçmiş Silinsin mi?',
-          text: "Bu işlem geri alınamaz! Bütün harcama kayıtlarınız silinecek.",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          confirmButtonText: 'Evet, Hepsini Sil'
+          title: 'Dikkat!', text: "Tüm geçmiş silinecek. Emin misin?", icon: 'warning',
+          showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Evet, Sil'
       }).then((result) => {
           if (result.isConfirmed) {
-              set(ref(db, "gecmis_harcamalar"), null)
-              .then(() => Swal.fire('Silindi', 'Geçmiş temizlendi.', 'success'));
+              set(ref(db, "gecmis_harcamalar"), null).then(() => Swal.fire('Silindi', '', 'success'));
           }
       });
   };
