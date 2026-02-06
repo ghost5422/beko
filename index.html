@@ -7,44 +7,50 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
   <style>
+    /* --- TEMEL AYARLAR --- */
     * { box-sizing: border-box; }
-    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 0; margin: 0; color: #333; }
+    body { font-family: 'Poppins', sans-serif; background: #f4f6f9; padding: 0; margin: 0; color: #333; padding-bottom: 80px; }
     
-    /* NAVBAR */
+    /* --- NAVBAR (ALT MENÜ) --- */
     .navbar { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -2px 15px rgba(0,0,0,0.05); z-index: 1000; border-top: 1px solid #f1f1f1; }
     .nav-item { text-align: center; color: #bdc3c7; cursor: pointer; font-size: 13px; flex: 1; transition: color 0.3s; }
     .nav-item i { display: block; font-size: 22px; margin-bottom: 4px; }
     .nav-item.active { color: #e67e22; font-weight: 600; }
 
-    /* GENEL */
-    .page { display: none; padding: 20px 20px 90px 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+    /* --- SAYFA YAPISI --- */
+    .page { display: none; padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.3s ease; }
     .page.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     
+    /* --- BAŞLIK ALANI --- */
     .header-area { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 25px; }
     .header-area h2 { margin: 0; color: #2c3e50; font-size: 1.6rem; display:flex; align-items:center; gap:10px; }
     .btn-delete-history { position: absolute; right: 0; background: #fee; color: #c0392b; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 
-    /* DASHBOARD */
+    /* --- DASHBOARD (TOPLAM TUTAR) --- */
     .dashboard { margin-bottom: 25px; }
     .card { padding: 25px; border-radius: 20px; text-align: center; color: white; box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3); position: relative; overflow: hidden; }
     .card-spent { background: linear-gradient(135deg, #e67e22, #d35400); }
     .card h3 { margin: 0; font-size: 16px; opacity: 0.9; font-weight: normal; text-transform:uppercase; letter-spacing:1px; }
     .card span { font-size: 36px; font-weight: bold; display: block; margin-top: 5px; }
 
-    /* INPUTLAR */
+    /* --- GİRİŞ ALANLARI --- */
     input { padding: 14px; border: 1px solid #eee; border-radius: 12px; outline: none; font-size: 16px; width: 100%; background: #fff; }
     button { padding: 12px; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; color: white; transition: transform 0.1s; }
     button:active { transform: scale(0.95); }
-    .btn-add { background: #27ae60; flex: 2; }
-    .btn-fav { background: #f39c12; flex: 1; font-size:18px; display:flex; align-items:center; justify-content:center; }
-    .btn-clear-all { background: #c0392b; width: 100%; margin-top: 20px; padding: 16px; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); }
-
+    
     .add-item-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
     .input-row { display: flex; gap: 8px; }
-
-    /* TABLO VE SIRALAMA BUTONLARI */
+    
+    .btn-add { background: #27ae60; flex: 2; }
+    .btn-fav { background: #f39c12; flex: 1; font-size:18px; display:flex; align-items:center; justify-content:center; }
+    
+    /* --- BUTONLAR --- */
+    .btn-clear-all { background: #c0392b; width: 100%; padding: 16px; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    
+    /* --- TABLO & LİSTE --- */
     table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
     td { background: #fff; padding: 15px; vertical-align: middle; }
     td:first-child { border-top-left-radius: 15px; border-bottom-left-radius: 15px; padding-left: 10px; }
@@ -54,26 +60,25 @@
     
     /* İşlem Butonları */
     .action-btn { width: 34px; height: 34px; border-radius: 8px; color: white; margin-left: 4px; border:none; cursor: pointer; display:inline-flex; align-items:center; justify-content:center;}
-    .btn-check { background: #f1c40f; } .btn-check.completed { background: #27ae60; } .btn-edit { background: #3498db; } .btn-delete { background: #e74c3c; }
+    .btn-check { background: #f1c40f; } .btn-check.completed { background: #27ae60; } 
+    .btn-edit { background: #3498db; } .btn-delete { background: #e74c3c; }
     tr.bought-item .item-name { text-decoration: line-through; color: #bdc3c7; }
 
-    /* YENİ: Taşıma Butonları */
+    /* Taşıma Butonları */
     .move-controls { display: flex; flex-direction: column; gap: 2px; align-items: center; justify-content: center; margin-right: 8px; }
     .btn-move { background: #ecf0f1; color: #95a5a6; width: 24px; height: 24px; border-radius: 4px; border:none; cursor:pointer; font-size: 10px; display:flex; align-items:center; justify-content:center; }
     .btn-move:active { background: #bdc3c7; color: white; }
 
-    /* MODAL */
+    /* --- MODAL (FAVORİLER & DÜZENLEME) --- */
     .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:2000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
     .modal-overlay.open { display:flex; }
     .modal-content { background:#fff; width:90%; max-width:400px; border-radius:20px; padding:20px; max-height:85vh; display:flex; flex-direction:column; }
     .fav-item { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #f1f1f1; }
-    .fav-info { flex: 1; }
-    .fav-actions { display: flex; align-items: center; gap: 6px; }
     .fav-qty-input { width: 45px; padding: 8px; text-align: center; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
     .btn-fav-add { background: #3498db; color: white; width: 36px; height: 36px; border-radius: 8px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; }
     .btn-fav-del { background: #ffebee; color: #c62828; width: 30px; height: 30px; border-radius: 8px; border:none; cursor:pointer; margin-left:5px; }
 
-    /* GEÇMİŞ */
+    /* --- GEÇMİŞ SAYFASI --- */
     .month-section { margin-bottom: 30px; }
     .month-header { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; padding-left: 5px; border-left: 4px solid #3498db; display: flex; justify-content: space-between; align-items: center; }
     .history-card { background: #fff; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); overflow: hidden; }
@@ -97,11 +102,10 @@
       <span style="font-weight:bold; color:#f39c12; font-size:18px;"><i class="fas fa-star"></i> Sık Alınanlar</span>
       <button onclick="closeModal()" style="background:none; color:#999; padding:0; width:auto; font-size:20px;"><i class="fas fa-times"></i></button>
     </div>
-
     <div style="background:#f8f9fa; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #eee;">
-        <label style="font-size:11px; color:#95a5a6; display:block; margin-bottom:5px;">Yeni Kayıt:</label>
+        <label style="font-size:11px; color:#95a5a6; display:block; margin-bottom:5px;">Hızlı Ekleme Listesine Kaydet:</label>
         <div style="display:flex; gap:5px;">
-            <input type="text" id="newFavName" placeholder="Ürün" style="font-size:13px; flex:2;">
+            <input type="text" id="newFavName" placeholder="Ürün Adı" style="font-size:13px; flex:2;">
             <input type="number" id="newFavPrice" placeholder="TL" style="font-size:13px; width:60px;">
             <button onclick="saveNewFavorite()" style="background:#2ecc71; width:40px; padding:0;"><i class="fas fa-save"></i></button>
         </div>
@@ -124,7 +128,7 @@
     </div>
 
     <div class="add-item-section">
-      <input type="text" id="itemName" placeholder="Ürün adı (Örn: Ekmek)">
+      <input type="text" id="itemName" placeholder="Ürün adı (Örn: Ekmek, Süt)">
       <div class="input-row">
         <input type="number" id="itemQty" placeholder="Adet" value="1" style="flex: 0.7;">
         <input type="number" id="itemPrice" placeholder="Fiyat" style="flex: 1.3;">
@@ -134,8 +138,10 @@
     </div>
 
     <table><tbody id="shoppingListBody"></tbody></table>
-    <button class="btn-clear-all" onclick="finishShopping()"><i class="fas fa-check-double"></i> Alışverişi Bitir & Kaydet</button>
-    <div style="height:20px;"></div>
+
+    <button class="btn-clear-all" onclick="finishShopping()">
+        <i class="fas fa-check-double"></i> Alışverişi Bitir & Kaydet
+    </button>
   </div>
 </div>
 
@@ -152,6 +158,7 @@
 </div>
 
 <script type="module">
+  // --- FIREBASE KURULUMU ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
   import { getDatabase, ref, push, onValue, remove, update, set } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
@@ -171,14 +178,20 @@
   let globalListTotal = 0;
   let localList = [];
 
+  // --- SAYFA GEÇİŞLERİ ---
   window.switchPage = function(p) {
     document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-    if (p === 'home') { document.getElementById('homePage').classList.add('active'); document.querySelectorAll('.nav-item')[0].classList.add('active'); }
-    else { document.getElementById('historyPage').classList.add('active'); document.querySelectorAll('.nav-item')[1].classList.add('active'); }
+    if (p === 'home') { 
+        document.getElementById('homePage').classList.add('active'); 
+        document.querySelectorAll('.nav-item')[0].classList.add('active'); 
+    } else { 
+        document.getElementById('historyPage').classList.add('active'); 
+        document.querySelectorAll('.nav-item')[1].classList.add('active'); 
+    }
   };
 
-  // --- FAVORİLER ---
+  // --- FAVORİLER SİSTEMİ ---
   window.openModal = () => document.getElementById("favModal").classList.add("open");
   window.closeModal = () => document.getElementById("favModal").classList.remove("open");
   
@@ -187,7 +200,8 @@
       const price = parseFloat(document.getElementById("newFavPrice").value);
       if(!name) return;
       push(ref(db, "kayitli_urunler"), { name: name, defaultPrice: isNaN(price)?0:price });
-      document.getElementById("newFavName").value = ""; document.getElementById("newFavPrice").value = "";
+      document.getElementById("newFavName").value = ""; 
+      document.getElementById("newFavPrice").value = "";
       Swal.mixin({ toast: true, position: 'top', showConfirmButton: false, timer: 1000 }).fire({ icon: 'success', title: 'Kaydedildi' });
   };
 
@@ -220,13 +234,14 @@
   };
   window.deleteFav = (k) => { remove(ref(db, "kayitli_urunler/"+k)); };
 
-  // --- LİSTE İŞLEMLERİ ---
+  // --- ANA LİSTE İŞLEMLERİ ---
   window.addItem = () => {
     const n = document.getElementById("itemName").value.trim();
     const p = parseFloat(document.getElementById("itemPrice").value.replace(',','.')) || 0;
     const q = parseFloat(document.getElementById("itemQty").value) || 1;
     if(!n) { Swal.fire("Uyarı","İsim gerekli","warning"); return; }
     addItemDirect(n, p, q);
+    // Kutuları temizle
     document.getElementById("itemName").value = ""; 
     document.getElementById("itemPrice").value = "";
     document.getElementById("itemQty").value = "1";
@@ -235,20 +250,23 @@
   function addItemDirect(name, price, qty) {
       push(ref(db, "alisveris_listesi"), { 
           name: name, price: price, quantity: qty, isBought: false, 
-          order: Date.now() // Sıralama için zaman damgası
+          order: Date.now() // Sıralama için
       });
   }
 
   onValue(ref(db, "alisveris_listesi"), (snap) => {
     localList = []; globalListTotal = 0;
-    snap.forEach(c => { 
-        const val = c.val();
-        val.quantity = val.quantity || 1; 
-        val.order = val.order || 0;
-        localList.push({key:c.key, ...val}); 
-        globalListTotal += (parseFloat(val.price) * parseFloat(val.quantity)); 
-    });
-    // Sıralama (order'a göre)
+    if(snap.exists()){
+        snap.forEach(c => { 
+            const val = c.val();
+            // Veri güvenliği
+            val.quantity = val.quantity || 1; 
+            val.order = val.order || 0;
+            localList.push({key:c.key, ...val}); 
+            globalListTotal += (parseFloat(val.price) * parseFloat(val.quantity)); 
+        });
+    }
+    // Listeyi 'order' değerine göre sırala (Önce eklenen veya taşınan)
     localList.sort((a,b) => a.order - b.order);
     renderTable(); 
     document.getElementById("displayTotalList").innerText = globalListTotal.toFixed(2)+" ₺";
@@ -262,7 +280,7 @@
        const tr = document.createElement("tr"); if(i.isBought) tr.classList.add("bought-item");
        const lineTotal = i.price * i.quantity;
 
-       // Yukarı / Aşağı Butonları (İlk ve son elemanda tek buton görünür)
+       // Taşıma butonları
        const upBtn = index > 0 ? `<button class="btn-move" onclick="moveItem(${index}, -1)"><i class="fas fa-chevron-up"></i></button>` : `<div style="height:24px;"></div>`;
        const downBtn = index < localList.length - 1 ? `<button class="btn-move" onclick="moveItem(${index}, 1)"><i class="fas fa-chevron-down"></i></button>` : `<div style="height:24px;"></div>`;
 
@@ -283,7 +301,7 @@
     });
   }
   
-  // YUKARI AŞAĞI TAŞIMA FONKSİYONU
+  // Sıralama Değiştirme
   window.moveItem = function(index, direction) {
       if (direction === -1 && index === 0) return; 
       if (direction === 1 && index === localList.length - 1) return;
@@ -291,7 +309,6 @@
       const currentItem = localList[index];
       const targetItem = localList[index + direction];
 
-      // Firebase'de sadece order değerlerini takas et
       const updates = {};
       updates[`alisveris_listesi/${currentItem.key}/order`] = targetItem.order;
       updates[`alisveris_listesi/${targetItem.key}/order`] = currentItem.order;
@@ -301,15 +318,54 @@
   
   window.tog = (k,s) => update(ref(db,"alisveris_listesi/"+k),{isBought:!s});
   window.del = (k) => remove(ref(db,"alisveris_listesi/"+k));
-  window.edt = (k,n,p,q) => {
+
+  // --- DÜZENLEME (EDIT) FONKSİYONU - FİYAT DAHİL ---
+  window.edt = (k, n, p, q) => {
       Swal.fire({
-          title:'Düzenle', 
-          html:`<input id="sw-name" class="swal2-input" value="${n}"><div style="display:flex;gap:5px;"><input id="sw-qty" type="number" class="swal2-input" value="${q}"><input id="sw-price" type="number" class="swal2-input" value="${p}"></div>`,
-          showCancelButton:true, confirmButtonText:'Kaydet', preConfirm:()=>[document.getElementById('sw-name').value,document.getElementById('sw-price').value,document.getElementById('sw-qty').value]
-      }).then((r)=>{ if(r.isConfirmed) update(ref(db,"alisveris_listesi/"+k),{name:r.value[0], price:parseFloat(r.value[1])||0, quantity:parseFloat(r.value[2])||1}); });
+          title: 'Ürünü Düzenle',
+          html: `
+            <div style="text-align:left; margin-bottom:15px;">
+                <label style="font-size:12px; color:#7f8c8d; display:block; margin-bottom:5px;">Ürün Adı</label>
+                <input id="sw-name" class="swal2-input" value="${n}" placeholder="Ürün Adı" style="margin:0; width:100%;">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1; text-align:left;">
+                    <label style="font-size:12px; color:#7f8c8d; display:block; margin-bottom:5px;">Adet</label>
+                    <input id="sw-qty" type="number" class="swal2-input" value="${q}" style="margin:0; width:100%;">
+                </div>
+                <div style="flex:1; text-align:left;">
+                    <label style="font-size:12px; color:#7f8c8d; display:block; margin-bottom:5px;">Fiyat (₺)</label>
+                    <input id="sw-price" type="number" step="0.01" class="swal2-input" value="${p}" style="margin:0; width:100%;">
+                </div>
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: 'Kaydet',
+          cancelButtonText: 'İptal',
+          focusConfirm: false,
+          preConfirm: () => {
+              return [
+                  document.getElementById('sw-name').value,
+                  document.getElementById('sw-qty').value,
+                  document.getElementById('sw-price').value
+              ]
+          }
+      }).then((r) => {
+          if (r.isConfirmed) {
+              const newName = r.value[0];
+              const newQty = parseFloat(r.value[1]) || 1;
+              const newPrice = parseFloat(r.value[2]) || 0;
+              
+              update(ref(db, "alisveris_listesi/" + k), {
+                  name: newName,
+                  quantity: newQty,
+                  price: newPrice
+              });
+          }
+      });
   };
 
-  // --- KAYDET & GEÇMİŞ ---
+  // --- KAYDETME VE GEÇMİŞ ---
   window.finishShopping = function() {
     if (globalListTotal === 0 && localList.length === 0) { Swal.fire("Liste Boş", "", "info"); return; }
     
@@ -323,12 +379,23 @@
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
         const monthStr = `${today.getFullYear()}-${today.getMonth() + 1}`;
+        const ts = Date.now(); 
+
         push(ref(db, "gecmis_harcamalar"), {
-            amount: globalListTotal, date: dateStr, monthKey: monthStr,
+            amount: globalListTotal, 
+            date: dateStr, 
+            timestamp: ts, 
+            monthKey: monthStr,
             fullDate: today.toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour:'2-digit', minute:'2-digit' }),
             items: itemsToSave
-        }).then(() => { remove(ref(db, "alisveris_listesi")); Swal.fire('Kaydedildi!', 'Geçmişe eklendi.', 'success'); });
-      } else if (result.isDenied) { remove(ref(db, "alisveris_listesi")); Swal.fire('Silindi', '', 'info'); }
+        }).then(() => { 
+            remove(ref(db, "alisveris_listesi")); 
+            Swal.fire('Kaydedildi!', 'Geçmişe eklendi.', 'success'); 
+        });
+      } else if (result.isDenied) { 
+          remove(ref(db, "alisveris_listesi")); 
+          Swal.fire('Silindi', '', 'info'); 
+      }
     });
   };
 
@@ -343,25 +410,37 @@
       });
   };
 
+  // --- GEÇMİŞ GÖRÜNTÜLEME ---
   onValue(ref(db, "gecmis_harcamalar"), (snapshot) => {
     const container = document.getElementById("historyListContainer"); container.innerHTML = "";
     if (!snapshot.exists()) { container.innerHTML = '<p style="text-align:center; color:#bdc3c7; margin-top:30px;">Henüz geçmiş kayıt yok.</p>'; return; }
     
     let historyData = [];
-    snapshot.forEach(c => historyData.push({ key: c.key, ...c.val() }));
-    historyData.sort((a, b) => new Date(b.date) - new Date(a.date));
+    snapshot.forEach(c => {
+        const val = c.val();
+        let safeTimestamp = val.timestamp || (val.date ? new Date(val.date).getTime() : 0);
+        let safeMonthKey = val.monthKey || "Diğer";
+        historyData.push({ key: c.key, ...val, timestamp: safeTimestamp, monthKey: safeMonthKey });
+    });
+    
+    historyData.sort((a, b) => b.timestamp - a.timestamp);
 
     let grouped = {};
     historyData.forEach(item => {
         if (!grouped[item.monthKey]) grouped[item.monthKey] = { total: 0, entries: [] };
         grouped[item.monthKey].entries.push(item);
-        grouped[item.monthKey].total += parseFloat(item.amount);
+        grouped[item.monthKey].total += parseFloat(item.amount || 0);
     });
 
     Object.keys(grouped).sort().reverse().forEach(monthKey => {
         const group = grouped[monthKey];
-        const [year, month] = monthKey.split('-');
-        const monthName = new Date(year, month - 1).toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+        let monthName = "Geçmiş Kayıtlar";
+        if(monthKey.includes('-')) {
+             const [year, month] = monthKey.split('-');
+             if(year && month) {
+                 monthName = new Date(year, month - 1).toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+             }
+        }
         
         const monthDiv = document.createElement("div"); monthDiv.className = "month-section";
         monthDiv.innerHTML = `<div class="month-header"><span>${monthName}</span><span style="font-size:14px; color:#7f8c8d;">Toplam: ${group.total.toFixed(2)} ₺</span></div>`;
@@ -369,18 +448,26 @@
         group.entries.forEach(entry => {
             const card = document.createElement("div"); card.className = "history-card";
             let detailsHtml = '';
-            if (entry.items && entry.items.length > 0) {
+            
+            if (entry.items && Array.isArray(entry.items)) {
                 entry.items.forEach(prod => {
                     const q = prod.quantity || 1;
-                    detailsHtml += `<div class="h-item-row"><span>${q > 1 ? `<b>${q}x</b> ` : ''}${prod.name}</span><span>${(prod.price * q).toFixed(2)} ₺</span></div>`;
+                    const pr = prod.price || 0;
+                    detailsHtml += `<div class="h-item-row"><span>${q > 1 ? `<b>${q}x</b> ` : ''}${prod.name}</span><span>${(pr * q).toFixed(2)} ₺</span></div>`;
                 });
             } else { detailsHtml = '<div class="h-item-row" style="color:#bdc3c7;">Detay yok</div>'; }
+            
+            const displayDate = entry.fullDate || entry.date || "Tarih Yok";
+
             card.innerHTML = `
                 <div class="history-summary" onclick="toggleDetails(this)">
                     <div class="h-date"><i class="fas fa-chevron-right h-icon" style="font-size:12px;"></i>
-                        <div style="display:flex; flex-direction:column;"><span>${entry.fullDate}</span><span style="font-size:11px; color:#95a5a6;">${entry.items ? entry.items.length : 0} kalem ürün</span></div>
+                        <div style="display:flex; flex-direction:column;">
+                            <span>${displayDate}</span>
+                            <span style="font-size:11px; color:#95a5a6;">${entry.items ? entry.items.length : 0} kalem ürün</span>
+                        </div>
                     </div>
-                    <div class="h-total">-${parseFloat(entry.amount).toFixed(2)} ₺</div>
+                    <div class="h-total">-${parseFloat(entry.amount || 0).toFixed(2)} ₺</div>
                 </div>
                 <div class="history-details">${detailsHtml}</div>`;
             monthDiv.appendChild(card);
